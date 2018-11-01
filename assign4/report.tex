@@ -1,0 +1,150 @@
+\documentclass[a4paper, 11pt]{article}
+\usepackage{graphicx} 
+\usepackage{comment} % enables the use of multi-line comments (\ifx \fi) 
+\usepackage{lipsum} %This package just generates Lorem Ipsum filler text. 
+\usepackage{fullpage} % changes the margin
+\usepackage{listings}
+\usepackage{xcolor}
+\lstset{
+    columns=fixed,       
+    numbers=left,                                        % 在左侧显示行号
+    frame=none,                                          % 不显示背景边框
+    backgroundcolor=\color[RGB]{245,245,244},            % 设定背景颜色
+    keywordstyle=\color[RGB]{40,40,255},                 % 设定关键字颜色
+    numberstyle=\footnotesize\color{darkgray},           % 设定行号格式
+    commentstyle=\it\color[RGB]{0,96,96},                % 设置代码注释的格式
+    stringstyle=\rmfamily\slshape\color[RGB]{128,0,0},   % 设置字符串格式
+    showstringspaces=false,                              % 不显示字符串中的空格
+    language=c++,                                        % 设置语言
+}
+
+\begin{document}
+%Header-Make sure you update this information!!!!
+\noindent
+\large\textbf{Assignment 4 Report} \hfill \textbf{Muhan Li} \\
+\normalsize Socket Programming \hfill 516030910324 \\
+CS 339 \hfill F1603303
+
+\section*{Problem Statement}
+In this assignment, we are asked to implement a simple file share application using TCP Socket APIs. The peers could upload or download files between peers. It is made up of two parts: the client-server model and p2p model. My implementation is based on C.
+
+\section*{Client-Server Model}
+\subsection*{Functions}
+As required, my C/S model implementation has the following features:\\
+On server, it listens to a given port (2680) when it starts. A message will show up whenever the server is set up, a new client is connected or disconnected, or a file is asked for.\\
+On client, a prompt goes out to ask for the address of your server. When the connection is set up, it asks for the path of the file you want to get. You insert a path, and the file will be saved to the working directory. This repeats until you input \texttt{ESC}.\\
+\\
+Also, I added some more features to support multiple users, deal with conflicts and increase robustness.
+\begin{itemize}
+    \item The server side opens a new thread for every client to support multiple users.
+    \item Locks the mutex when reading and sending a file. Release it when the transfer is done.
+    \item Detailed run-time information and error handling.
+\end{itemize}
+
+\subsection*{Test Example}
+Double click the executable to run it in command lines. 
+\begin{figure}[hbp]
+\begin{minipage}[t]{0.5\linewidth}
+\centering
+\includegraphics[width=0.95\textwidth]{server.png}
+\caption{Server Side}
+\end{minipage}%
+\begin{minipage}[t]{0.5\linewidth}
+\centering
+\includegraphics[width=0.95\textwidth]{client.png}
+\caption{Client Side}
+\end{minipage}
+\end{figure}\\
+In this test case, I first asked for the file \texttt{1.txt} which is on the server, and then \texttt{3.txt} which does not exist. \\
+The request \texttt{1.txt} was handled successfully, and the client saves the file. \\
+Request \texttt{3.txt} failed, and the client shows a message without saving anything.
+
+\subsection*{Multiple Clients Support}
+The server supports multiple users by opening a new thread for every client. The server locks the mutex to avoid conflicts when it is reading or sending a file. Mutex is then released when the transfer is done.\\
+This example shows the server serves two clients at the same time. Both connections are all alive until the client exits. Both clients can get files.
+\begin{figure}[hbp]
+\centering
+\includegraphics[width=\textwidth]{multi.png}
+\caption{Multiple Clients Support}
+\end{figure}
+~\\
+\lstset{
+  basicstyle=\ttfamily,
+}
+{
+\begin{lstlisting}
+int main (int argc, char *argv[]) {
+    // binding socket, 0 for TCP protocol
+    sockfd = socket (AF_INET, SOCK_STREAM, 0);
+    bind(sockfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
+    ...
+    // open one thread for every client
+    pthread_t thread1, thread2;
+    pthread_create (&thread1, NULL, serve, (void*) &sockfd);
+    pthread_create (&thread2, NULL, serve, (void*) &sockfd);
+    ...
+}
+\end{lstlisting}}
+\begin{center}
+Main function opens multiple threads after binding.
+\end{center}
+
+{
+\begin{lstlisting}
+void *serve (void *sockinp)
+{
+    while (1) {
+        ... // set up connection for a new client
+        while (1) {
+            pthread_mutex_lock (&mutex);
+            printf ("INFO Client asked for the file");
+            fputs (buffer, stdout);
+            ... // get the file and send back
+            printf ("INFO Sending response...\n");
+            dprintf (newsockfd, "%s", buffer);
+            pthread_mutex_unlock (&mutex);
+        }
+    }
+}
+\end{lstlisting}}
+\begin{center}
+Serve function handles clients' requests after locking the mutex.
+\end{center}
+
+\section*{P2P Model}
+\subsection*{Functions}
+In this part I implemented a p2p model client. This client serves as both a server and a client by opening two threads. 
+The work flow of my implementation is:
+\begin{enumerate}
+    \item \texttt{main()} function binds to an assigned port and start listening.
+    \item Two thread is created for \texttt{serve()} and \texttt{client()}.
+    \item The \texttt{serve} thread handles requests, read files and send them.
+    \item The \texttt{client} thread asks for the host address and port. It connects to the host, and ask for a file repeatedly until the user input \texttt{ESC}.
+\end{enumerate}
+
+\subsection*{Test Example}
+Double click the executable to run it in command lines.\\
+The server is set up on the assigned port.\\
+Insert the address and port number. The client connects to its server.\\
+At the same time, server thread is still running.
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.9\textwidth]{p2p.png}
+\caption{P2P Model - Connections}
+\end{figure}\\
+Both of the clients can ask for files, and the transfer is done successfully.
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.9\textwidth]{work.png}
+\caption{P2P Model - File Transfer}
+\end{figure}
+
+\section*{Final Evaluation}
+\subsection*{Conclusions}
+Working on this assignment I have reached a better understanding of socket programming. It provides me a chance to get a deeper insight of socket communicating. Also, I practised thread programming, which proved to be very useful in actual productions.
+
+\subsection*{Problems and Experiences}
+\textbf{The problem I met:} It was hard to build up the framework from none. At first I had no ideas about how to construct my code, and where to put all these functions. Maybe it would be easier to get to work when some basic frame code is provided.\\
+\textbf{Experiences I have gained:} Reading the documents turned out to be very helpful. Most of the mistakes I made was because I called some function in a wrong way.
+
+\end{document}

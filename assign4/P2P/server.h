@@ -30,18 +30,18 @@ void *serve (void *sockinp)
 				break;
 			}
             pthread_mutex_lock (&mutex);
+            for (int i=0;i<256;i++)
+				if (buffer[i]=='\n') {
+					buffer[i] = 0;
+					break;
+				}
 			printf ( BLUE "[SERVER] INFO Client asked for the file \"%s\"\n", buffer); 
 			//fputs (buffer, stdout);
 
 			FILE *fptr;
 			int buffer_len = 0;
 			char c;
-
-			for (int i=0;i<256;i++)
-				if (buffer[i]=='\n') {
-					buffer[i] = 0;
-					break;
-				}
+			
 			fptr = fopen(buffer, "r"); 
 			if (fptr == NULL) { 
 				printf( BLUE "[SERVER] ERROR Cannot open file, file name \"%s\"\n", buffer); 

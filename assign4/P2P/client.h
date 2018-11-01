@@ -69,7 +69,7 @@ void *client ()
 	// end connecting
 
 	while (1) {
-		printf ( CYAN "[CLIENT] To get a file, insert its path: \n");
+		printf ( CYAN "[CLIENT] " NONE "To get a file, insert its path: \n");
 		fgets (path, 255, stdin);
 
 		bzero (buffer, 256);
@@ -89,10 +89,10 @@ void *client ()
 		if (n < 0) {
 			printf ( CYAN "[CLIENT] ERROR reading buffer\n");
 		} else if (buffer[0] == 'F') {
-			printf( CYAN "[CLIENT] From server: FAILED\n");
+			printf( CYAN "[CLIENT] INFO Server returns FAILED\n");
 		} else {
 			write_file(path, buffer);  // todo
-			printf( CYAN "[CLIENT] From server: file saved.\n");
+			printf( CYAN "[CLIENT] INFO File saved from server.\n");
 		}
 	}
 	close (sockfd);

@@ -23,8 +23,8 @@ int main (int argc, char *argv[]) {
     // protected field
     int sockfd, portno;
 
-    char portbuffer[15]="2680";
-	printf( BLUE "[SERVER] " NONE "Please assign a port number (default 2680):");
+    char portbuffer[15];
+	printf( BLUE "[SERVER] " NONE "Please assign a port number: \n");
 	fgets(portbuffer,sizeof(portbuffer),stdin);
     portno = atoi(portbuffer);
 

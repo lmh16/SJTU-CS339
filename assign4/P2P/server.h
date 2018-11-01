@@ -30,8 +30,8 @@ void *serve (void *sockinp)
 				break;
 			}
             pthread_mutex_lock (&mutex);
-			printf ( BLUE "[SERVER] INFO Client asked for the file ");
-			fputs (buffer, stdout);
+			printf ( BLUE "[SERVER] INFO Client asked for the file \"%s\"\n", buffer); 
+			//fputs (buffer, stdout);
 
 			FILE *fptr;
 			int buffer_len = 0;

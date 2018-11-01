@@ -36,7 +36,6 @@ void *client ()
 	char buffer[256];
 	char path[256];
 
-	portno = 2680;
 	sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);  // specifies the protocol to be TCP
 	if (sockfd < 0) {
 		printf ( CYAN "[CLIENT] ERROR opening socket.");
@@ -44,8 +43,12 @@ void *client ()
 	}
 
 	char hostaddr[15];  // "127.0.0.1";
+    char portbuffer[15];
 	printf( CYAN "[CLIENT] " NONE "Please input your host address: \n");
 	fgets(hostaddr,sizeof(hostaddr),stdin);
+	printf( CYAN "[SERVER] " NONE "Please input its port number: \n");
+	fgets(portbuffer,sizeof(portbuffer),stdin);
+    portno = atoi(portbuffer);
 
 	server = gethostbyname(hostaddr);
 	if (server == NULL) {
